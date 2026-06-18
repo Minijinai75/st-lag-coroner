@@ -72,22 +72,30 @@
 
         <hr class="slc-hr" />
 
-        <!-- 雲端卡頓對策清單（計畫書的真正解法，cocktail-plus 為核心） -->
+        <!-- 卡頓對策：先分清是哪一種卡，再對症下藥（cocktail-plus 不是萬靈丹） -->
         <div class="inline-drawer slc-subdrawer">
             <div class="inline-drawer-toggle inline-drawer-header">
-                <b data-i18n="slc_ops_title">🛠️ 雲端卡頓對策（投報率由高到低）</b>
+                <b data-i18n="slc_ops_title">🛠️ 卡頓對策：先分清是哪一種卡</b>
                 <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
             </div>
             <div class="inline-drawer-content slc-ops">
-                <p data-i18n="slc_ops_lead">真正治雲端卡頓的事大多在伺服器/維運側，前端擴充只能輔助與診斷。依計畫書的投報率排序：</p>
-                <ol>
-                    <li data-i18n="slc_ops_1"><b>裝 cocktail-plus（前端＋後端）</b>——計畫書核心推薦：後端快取、early bridge 啟動加速、存檔縮包、擴充平行啟動。需在 config.yaml 開 <code>enableServerPlugins: true</code> 並複製後端元件（計畫書第 4 節）。可再搭柏宝箱補手機端 fetch/DOM 優化。</li>
-                    <li data-i18n="slc_ops_2"><b>給 Pod 設記憶體上限（memory limit）</b>，讓平台用 OOMKill 自動重啟，取代脆弱的凌晨 cron；或排凌晨錯開重啟讓記憶體歸零。</li>
-                    <li data-i18n="slc_ops_3"><b>config.yaml 調參</b>：開 <code>lazyLoadCharacters</code>、開 <code>requestCompression</code>、<code>memoryCacheCapacity: 50mb</code>、關 <code>enableServerPluginsAutoUpdate</code>。</li>
-                    <li data-i18n="slc_ops_4"><b>磁碟清理</b>：定期清角色快取 <code>_cache/characters/</code>、砍溢出 <code>backups/</code>、把擴充 <code>.git</code> 淺層化、刪用不到的向量索引。</li>
-                    <li data-i18n="slc_ops_5"><b>前端</b>：關「自動載入上次聊天」、長聊天開新檔、移除雲端用不到的擴充（TauriTavern 等）。這幾項上面的健檢能幫你一鍵處理。</li>
-                </ol>
-                <small data-i18n="slc_ops_foot">細節見《雲端酒館優化計畫書》。本擴充負責「告訴你問題在哪 + 能一鍵的就幫你按」，但不會、也無法替你動伺服器（讀 /proc、清磁碟、重啟都要伺服器權限）。</small>
+                <p data-i18n="slc_ops_lead">「裝個 cocktail-plus 就不卡」是迷思——它加速啟動，但不治「用久了越來越卡」。先用上面的量測分清楚，再對症：</p>
+
+                <div class="slc-ops-h" data-i18n="slc_ops_h1">① 用久了越來越卡（最常見的主訴）</div>
+                <p class="slc-ops-sub" data-i18n="slc_ops_lead1">cocktail-plus 治不了這種。先量 A/B：</p>
+                <ul>
+                    <li data-i18n="slc_ops_a"><b>A・伺服器記憶體</b>（生成等待久、跨人一起卡、清快取又復發）：給 Pod 設記憶體上限讓 OOMKill 自動重啟，或排凌晨重啟。<b>前端救不了。</b></li>
+                    <li data-i18n="slc_ops_b"><b>B・手機渲染</b>（畫面掉幀、滑不動）：把「載入訊息數」降到 100（上面可一鍵）、開新聊天檔、重新整理分頁；裝柏宝箱吃 content-visibility。</li>
+                </ul>
+
+                <div class="slc-ops-h" data-i18n="slc_ops_h2">② 開很慢 / 卡齒輪（冷啟動）</div>
+                <ul>
+                    <li data-i18n="slc_ops_c"><b>cocktail-plus（前端＋後端）</b>真正有感的地方：後端快取、early bridge、存檔縮包、擴充平行啟動。需 config.yaml 開 <code>enableServerPlugins: true</code> + 複製後端（計畫書第 4 節）。</li>
+                    <li data-i18n="slc_ops_d"><b>config.yaml</b>：<code>lazyLoadCharacters</code>、<code>requestCompression</code>、<code>memoryCacheCapacity: 50mb</code>、關 <code>enableServerPluginsAutoUpdate</code>。</li>
+                    <li data-i18n="slc_ops_e"><b>磁碟清理</b>：清角色快取、砍溢出備份、擴充 <code>.git</code> 淺層化。</li>
+                </ul>
+
+                <small data-i18n="slc_ops_foot">本擴充負責量測 + 一鍵修客戶端那半（B）；伺服器側（讀 /proc、清磁碟、重啟）前端碰不到，誠實指回維運。細節見《雲端酒館優化計畫書》。</small>
             </div>
         </div>
     </div>

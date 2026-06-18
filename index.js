@@ -207,6 +207,18 @@ async function runHealthCheck() {
         });
     }
 
+    // 6. 載入訊息數（chat_truncation）== 0 → 渲染整段歷史，是手機越用越卡最直接的原因。
+    //    script.js:1434/1477：0 會 fallback 成 MAX_SAFE_INTEGER（全載入）；預設 100（power-user.js:133）。
+    //    這是 cocktail-plus 結構上碰不到的純客戶端槓桿（它是啟動/傳輸層，不管渲染幾樓）。
+    const trunc = Number(ctx.powerUserSettings?.chat_truncation);
+    if (ctx.powerUserSettings && trunc === 0) {
+        findings.push({
+            level: 'warn',
+            text: '「載入訊息數」設成 0（不限制）：長聊天會把整段歷史都渲染成 DOM，是手機越用越卡最直接的原因。建議設成 100（ST 預設）。只影響渲染/載入的樓層數，不影響 AI 實際讀到的 context。',
+            action: { label: '幫我設成 100', fn: () => setChatTruncation(100) },
+        });
+    }
+
     renderFindings(findings);
 }
 
@@ -232,7 +244,7 @@ async function checkCocktail(findings) {
     if (hasCP && backend === true) {
         findings.push({
             level: 'ok',
-            text: 'cocktail-plus 前端＋後端都就緒：後端快取、early bridge 啟動加速、存檔縮包、擴充平行啟動都生效。',
+            text: 'cocktail-plus 前後端就緒：它加速啟動、省磁碟 I/O、縮小存檔。但它【不會】讓「用久了越來越卡」消失——那是伺服器記憶體(A，靠重啟/設記憶體上限) 或 手機渲染(B，靠下面的降「載入訊息數」、開新檔、重整)。',
         });
     } else if (hasCP && backend === false) {
         findings.push({
@@ -252,13 +264,12 @@ async function checkCocktail(findings) {
     } else if (hasCocktail) {
         findings.push({
             level: 'info',
-            text: '已裝輕量版 cocktail（純前端快取）。想要後端快取＋啟動平行化＋存檔縮包，可升級 cocktail-plus。',
-            action: installCP,
+            text: '已裝輕量版 cocktail（純前端快取）。它和 cocktail-plus 都是加速啟動/省 I/O，對「用久了越來越卡」幫不上——那要看 A/B（見下方量測與對策）。',
         });
     } else {
         findings.push({
-            level: 'warn',
-            text: '沒偵測到 cocktail / cocktail-plus —— 這是計畫書對雲端卡頓的【核心推薦】。cocktail-plus 做後端快取、early bridge 啟動加速、存檔縮包、擴充平行啟動，雲端啟動與長對話有感。建議安裝。',
+            level: 'info',
+            text: '沒裝 cocktail-plus。它能加速啟動、省磁碟 I/O、縮小存檔（對「開很慢/卡齒輪」有感），但【不是】「用久了越來越卡」的解藥——別期待裝了就不卡。要裝可一鍵複製網址。',
             action: installCP,
         });
     }
@@ -312,6 +323,23 @@ function disableAutoLoadChat() {
     }
     try {
         toastr.success('已關閉「自動載入上次聊天」。下次開酒館不會再自動載入長聊天。', '卡頓驗屍官');
+    } catch { /* noop */ }
+    runHealthCheck();
+}
+
+/** 一鍵把「載入訊息數」設成 n——觸發 ST 官方 #chat_truncation handler（power-user.js:3394-3398）。 */
+function setChatTruncation(n) {
+    const ctx = getCtx();
+    const el = document.getElementById('chat_truncation');
+    if (el) {
+        // 官方 input handler 自己設 power_user.chat_truncation、更新 counter、saveSettingsDebounced
+        $('#chat_truncation').val(n).trigger('input');
+    } else if (ctx?.powerUserSettings) {
+        ctx.powerUserSettings.chat_truncation = n;
+        ctx.saveSettingsDebounced?.();
+    }
+    try {
+        toastr.success(`已把「載入訊息數」設成 ${n}。重新整理分頁或切換聊天後，只渲染最近 ${n} 樓，手機會明顯變輕。`, '卡頓驗屍官');
     } catch { /* noop */ }
     runHealthCheck();
 }

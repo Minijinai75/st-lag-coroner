@@ -132,7 +132,8 @@
     margin-top: 4px;
 }
 
-#slc-root .slc-ops ol {
+#slc-root .slc-ops ol,
+#slc-root .slc-ops ul {
     padding-left: 1.4em;
     margin: 6px 0;
 }
@@ -140,6 +141,18 @@
 #slc-root .slc-ops li {
     margin: 4px 0;
     line-height: 1.5;
+}
+
+#slc-root .slc-ops-h {
+    font-weight: bold;
+    margin: 10px 0 2px;
+    border-left: 3px solid var(--SmartThemeQuoteColor, #e18a24);
+    padding-left: 8px;
+}
+
+#slc-root .slc-ops-sub {
+    margin: 2px 0;
+    opacity: 0.85;
 }
 
 /* 勸導彈窗（在 ST Popup 內，不在 #slc-root 之下，故獨立選擇器） */

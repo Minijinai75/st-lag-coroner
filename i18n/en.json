@@ -12,12 +12,15 @@
     "slc_nudge_title": "🗂️ Long-chat nudge",
     "slc_nudge_enabled": "Suggest starting a new chat when it gets long",
     "slc_nudge_threshold": "Nudge threshold (message count)",
-    "slc_ops_title": "🛠️ Cloud lag remedies (highest ROI first)",
-    "slc_ops_lead": "Most real fixes for cloud lag live on the server/ops side; a frontend extension can only assist and diagnose. Ordered by the plan's ROI:",
-    "slc_ops_1": "Install cocktail-plus (frontend + backend) — the plan's core recommendation: backend cache, early-bridge startup speedup, save patching, parallel extension activation. Requires enableServerPlugins: true in config.yaml plus copying the backend component (plan section 4). Pair with BaiBai-Tools for phone-side fetch/DOM optimization.",
-    "slc_ops_2": "Set a memory limit on the Pod so the platform's OOMKill auto-restarts it, replacing the fragile pre-dawn cron; or schedule staggered pre-dawn restarts to zero out memory.",
-    "slc_ops_3": "config.yaml tuning: enable lazyLoadCharacters, enable requestCompression, memoryCacheCapacity: 50mb, disable enableServerPluginsAutoUpdate.",
-    "slc_ops_4": "Disk cleanup: periodically clear character cache _cache/characters/, prune overflow backups/, shallow-clone extension .git histories, delete unused vector indexes.",
-    "slc_ops_5": "Frontend: turn off \"auto-load last chat\", start a new chat when it gets long, remove cloud-useless extensions (TauriTavern etc.). The health check above can do these in one click.",
-    "slc_ops_foot": "See the Cloud Tavern Optimization Plan for details. This extension tells you where the problem is and one-click-fixes what it safely can — but it will not, and cannot, touch the server (reading /proc, clearing disk, restarting all need server privileges)."
+    "slc_ops_title": "🛠️ Lag remedies: first figure out which kind of lag",
+    "slc_ops_lead": "\"Just install cocktail-plus and it won't lag\" is a myth — it speeds startup but does not cure \"gets laggier the longer you use it\". Use the meter above to tell them apart, then treat the right one:",
+    "slc_ops_h1": "1. Gets laggier over time (the most common complaint)",
+    "slc_ops_lead1": "cocktail-plus can't fix this kind. First measure A vs B:",
+    "slc_ops_a": "A - Server memory (long generation waits, everyone lags together, recurs after clearing cache): set a Pod memory limit so OOMKill auto-restarts, or schedule restarts. The frontend can't fix this.",
+    "slc_ops_b": "B - Phone rendering (dropped frames, won't scroll): lower \"messages to load\" to 100 (one-click above), start a new chat, reload the tab; install BaiBai-Tools for content-visibility.",
+    "slc_ops_h2": "2. Slow to open / stuck on the gear (cold start)",
+    "slc_ops_c": "cocktail-plus (frontend + backend) is where it actually helps: backend cache, early bridge, save patching, parallel extension activation. Needs enableServerPlugins: true in config.yaml + copying the backend (plan section 4).",
+    "slc_ops_d": "config.yaml: lazyLoadCharacters, requestCompression, memoryCacheCapacity: 50mb, disable enableServerPluginsAutoUpdate.",
+    "slc_ops_e": "Disk cleanup: clear character cache, prune overflow backups, shallow-clone extension .git histories.",
+    "slc_ops_foot": "This extension measures and one-click-fixes the client half (B); the server side (reading /proc, clearing disk, restarting) is out of the frontend's reach and is honestly pointed back to ops. See the Cloud Tavern Optimization Plan for details."
 }
