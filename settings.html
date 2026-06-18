@@ -18,6 +18,15 @@
             <span data-i18n="slc_enabled">啟用卡頓驗屍官</span>
         </label>
 
+        <div class="slc-quick">
+            <div class="menu_button" id="slc-copy-cp">
+                <span data-i18n="slc_quick_cp">📋 複製 cocktail-plus 安裝網址</span>
+            </div>
+            <div class="menu_button" id="slc-reload">
+                <span data-i18n="slc_quick_reload">🔄 重新整理分頁（清畫面累積）</span>
+            </div>
+        </div>
+
         <hr class="slc-hr" />
 
         <!-- 環境健檢 -->
@@ -63,20 +72,22 @@
 
         <hr class="slc-hr" />
 
-        <!-- 維運提示卡（伺服器側才治得了的事，誠實指回伺服器） -->
+        <!-- 雲端卡頓對策清單（計畫書的真正解法，cocktail-plus 為核心） -->
         <div class="inline-drawer slc-subdrawer">
             <div class="inline-drawer-toggle inline-drawer-header">
-                <b data-i18n="slc_ops_title">🛠️ 伺服器側才治得了的（前端碰不到）</b>
+                <b data-i18n="slc_ops_title">🛠️ 雲端卡頓對策（投報率由高到低）</b>
                 <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
             </div>
             <div class="inline-drawer-content slc-ops">
-                <p data-i18n="slc_ops_lead">如果量測顯示「生成等待久、但手機畫面不忙」，問題多半在伺服器或網路，裝任何前端擴充都救不了。請維運者做這幾件投報率最高的事：</p>
+                <p data-i18n="slc_ops_lead">真正治雲端卡頓的事大多在伺服器/維運側，前端擴充只能輔助與診斷。依計畫書的投報率排序：</p>
                 <ol>
-                    <li data-i18n="slc_ops_1">給 Pod 設記憶體上限（memory limit），讓平台用 OOMKill 自動重啟，取代脆弱的凌晨 cron。</li>
-                    <li data-i18n="slc_ops_2">config.yaml：開 lazyLoadCharacters、開 requestCompression、關 enableServerPluginsAutoUpdate。</li>
-                    <li data-i18n="slc_ops_3">關閉「自動載入上次聊天」、定期清角色快取與溢出備份、把擴充 .git 淺層化。</li>
+                    <li data-i18n="slc_ops_1"><b>裝 cocktail-plus（前端＋後端）</b>——計畫書核心推薦：後端快取、early bridge 啟動加速、存檔縮包、擴充平行啟動。需在 config.yaml 開 <code>enableServerPlugins: true</code> 並複製後端元件（計畫書第 4 節）。可再搭柏宝箱補手機端 fetch/DOM 優化。</li>
+                    <li data-i18n="slc_ops_2"><b>給 Pod 設記憶體上限（memory limit）</b>，讓平台用 OOMKill 自動重啟，取代脆弱的凌晨 cron；或排凌晨錯開重啟讓記憶體歸零。</li>
+                    <li data-i18n="slc_ops_3"><b>config.yaml 調參</b>：開 <code>lazyLoadCharacters</code>、開 <code>requestCompression</code>、<code>memoryCacheCapacity: 50mb</code>、關 <code>enableServerPluginsAutoUpdate</code>。</li>
+                    <li data-i18n="slc_ops_4"><b>磁碟清理</b>：定期清角色快取 <code>_cache/characters/</code>、砍溢出 <code>backups/</code>、把擴充 <code>.git</code> 淺層化、刪用不到的向量索引。</li>
+                    <li data-i18n="slc_ops_5"><b>前端</b>：關「自動載入上次聊天」、長聊天開新檔、移除雲端用不到的擴充（TauriTavern 等）。這幾項上面的健檢能幫你一鍵處理。</li>
                 </ol>
-                <small data-i18n="slc_ops_foot">細節見《雲端酒館優化計畫書》。本擴充只負責「告訴你問題在哪」，不會、也無法替你動伺服器。</small>
+                <small data-i18n="slc_ops_foot">細節見《雲端酒館優化計畫書》。本擴充負責「告訴你問題在哪 + 能一鍵的就幫你按」，但不會、也無法替你動伺服器（讀 /proc、清磁碟、重啟都要伺服器權限）。</small>
             </div>
         </div>
     </div>

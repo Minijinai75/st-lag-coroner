@@ -2,6 +2,8 @@
     "slc_title": "🩺 Lag Coroner",
     "slc_intro": "First measure whether the lag is on the server (A) or your phone's screen (B), then honestly handle the client half. It does not intercept fetch, touch chat rendering, or fix the server — the frontend physically can't.",
     "slc_enabled": "Enable Lag Coroner",
+    "slc_quick_cp": "📋 Copy cocktail-plus install URL",
+    "slc_quick_reload": "🔄 Reload tab (clear screen buildup)",
     "slc_health_title": "🔍 Environment health check",
     "slc_health_run": "Re-run check",
     "slc_gauge_title": "📈 Perceived-latency meter (phone smoothness)",
@@ -10,10 +12,12 @@
     "slc_nudge_title": "🗂️ Long-chat nudge",
     "slc_nudge_enabled": "Suggest starting a new chat when it gets long",
     "slc_nudge_threshold": "Nudge threshold (message count)",
-    "slc_ops_title": "🛠️ Only the server can fix these (frontend can't touch them)",
-    "slc_ops_lead": "If the meter shows \"generation waits are long but the screen isn't busy,\" the problem is most likely the server or network, and no frontend extension can help. Ask the operator to do the highest-ROI things:",
-    "slc_ops_1": "Set a memory limit on the Pod so the platform's OOMKill auto-restarts it, replacing the fragile pre-dawn cron.",
-    "slc_ops_2": "config.yaml: enable lazyLoadCharacters, enable requestCompression, disable enableServerPluginsAutoUpdate.",
-    "slc_ops_3": "Turn off \"auto-load last chat\", periodically clear character cache and overflow backups, and shallow-clone extension .git histories.",
-    "slc_ops_foot": "See the Cloud Tavern Optimization Plan for details. This extension only tells you where the problem is — it will not, and cannot, touch the server for you."
+    "slc_ops_title": "🛠️ Cloud lag remedies (highest ROI first)",
+    "slc_ops_lead": "Most real fixes for cloud lag live on the server/ops side; a frontend extension can only assist and diagnose. Ordered by the plan's ROI:",
+    "slc_ops_1": "Install cocktail-plus (frontend + backend) — the plan's core recommendation: backend cache, early-bridge startup speedup, save patching, parallel extension activation. Requires enableServerPlugins: true in config.yaml plus copying the backend component (plan section 4). Pair with BaiBai-Tools for phone-side fetch/DOM optimization.",
+    "slc_ops_2": "Set a memory limit on the Pod so the platform's OOMKill auto-restarts it, replacing the fragile pre-dawn cron; or schedule staggered pre-dawn restarts to zero out memory.",
+    "slc_ops_3": "config.yaml tuning: enable lazyLoadCharacters, enable requestCompression, memoryCacheCapacity: 50mb, disable enableServerPluginsAutoUpdate.",
+    "slc_ops_4": "Disk cleanup: periodically clear character cache _cache/characters/, prune overflow backups/, shallow-clone extension .git histories, delete unused vector indexes.",
+    "slc_ops_5": "Frontend: turn off \"auto-load last chat\", start a new chat when it gets long, remove cloud-useless extensions (TauriTavern etc.). The health check above can do these in one click.",
+    "slc_ops_foot": "See the Cloud Tavern Optimization Plan for details. This extension tells you where the problem is and one-click-fixes what it safely can — but it will not, and cannot, touch the server (reading /proc, clearing disk, restarting all need server privileges)."
 }

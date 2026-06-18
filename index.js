@@ -43,6 +43,11 @@ const DEFAULTS = {
     longChatThreshold: 600,
 };
 
+/** 計畫書對雲端卡頓的核心推薦擴充安裝網址 */
+const COCKTAIL_PLUS_URL = 'https://github.com/Lianues/cocktail-plus';
+const COCKTAIL_URL = 'https://github.com/Lianues/cocktail';
+const BAIBAI_URL = 'https://github.com/baibai-git/ST-BaiBai-Tools';
+
 /* ------------------------------------------------------------------ */
 /* 模組層級狀態（具名 handler 與量測狀態，removeListener / 清理都靠它）   */
 /* ------------------------------------------------------------------ */
@@ -130,9 +135,11 @@ function listThirdPartyExtensions() {
 }
 
 /**
- * 跑一次環境健檢，把發現渲染進面板（textContent，零 XSS 風險）。
+ * 跑一次環境健檢（async：要探測 cocktail-plus 後端）。把發現渲染進面板。
+ * 部分發現帶「一鍵動作」按鈕（關閉 auto_load_chat、複製安裝網址…），
+ * 讓它不只「說問題」、而是能直接幫上忙。
  */
-function runHealthCheck() {
+async function runHealthCheck() {
     const ctx = getCtx();
     if (!ctx) {
         return;
@@ -140,16 +147,25 @@ function runHealthCheck() {
     const s = getSettings();
     const findings = [];
 
-    // 柏宝箱在場：本擴充刻意與它零重疊（不攔 fetch、不碰 #chat），只是告知共存
-    // （globalThis.__baiBaiToolkitExtensionInstalled 為柏宝箱寫入，baibai §3.7）。
+    // 1. cocktail / cocktail-plus —— 計畫書對雲端卡頓的【核心推薦】，含「半套安裝」偵測
+    await checkCocktail(findings);
+
+    // 2. 柏宝箱在場：本擴充刻意與它零重疊（不攔 fetch、不碰 #chat），只是告知共存
+    //    （globalThis.__baiBaiToolkitExtensionInstalled 為柏宝箱寫入，baibai §3.7）
     if (globalThis.__baiBaiToolkitExtensionInstalled) {
         findings.push({
             level: 'info',
-            text: '偵測到柏宝箱（BaiBai-Tools）在場。本擴充刻意不攔 fetch、不碰 #chat 渲染，與它零重疊，可安心共存。',
+            text: '偵測到柏宝箱（BaiBai-Tools）在場：手機端 fetch/DOM 優化交給它。本擴充與它零重疊。',
+        });
+    } else {
+        findings.push({
+            level: 'info',
+            text: '沒偵測到柏宝箱（BaiBai-Tools）。它做手機端 fetch 攔截優化、長聊天虛擬化、存檔去重，雲端手機族有感，可搭配 cocktail-plus 一起裝。',
+            action: { label: '複製柏宝箱安裝網址', fn: () => copyUrl(BAIBAI_URL) },
         });
     }
 
-    // 雲端用不到的桌面包裝器（TauriTavern 類）：純佔空間
+    // 3. 雲端用不到的桌面包裝器（TauriTavern 類）：純佔空間
     const tp = listThirdPartyExtensions();
     const tauri = tp.filter((n) => /tauri/i.test(n));
     if (tauri.length) {
@@ -159,7 +175,7 @@ function runHealthCheck() {
         });
     }
 
-    // 擴充數量過多（計畫書 §1.3 列為卡頓三大成因之一）
+    // 4. 擴充數量過多（計畫書 §1.3 列為卡頓三大成因之一）
     if (tp.length >= 15) {
         findings.push({
             level: 'info',
@@ -167,14 +183,16 @@ function runHealthCheck() {
         });
     }
 
-    // 長聊天 + 自動載入上次聊天 的組合（powerUserSettings.auto_load_chat,
-    // st-context.js:228 暴露 power_user；power-user.js:335 預設 false）
+    // 5. 長聊天 + 自動載入上次聊天（附一鍵關閉，走 ST 官方 checkbox handler）
+    //    （powerUserSettings.auto_load_chat：st-context.js:228；power-user.js:335 預設 false）
     const chatLen = Array.isArray(ctx.chat) ? ctx.chat.length : 0;
     const autoLoad = !!ctx.powerUserSettings?.auto_load_chat;
+    const fixAuto = { label: '幫我關掉自動載入', fn: disableAutoLoadChat };
     if (autoLoad && chatLen >= s.longChatThreshold) {
         findings.push({
             level: 'warn',
-            text: `「自動載入上次聊天」開著，且目前聊天 ${chatLen} 樓。每次開酒館都要載入這條長聊天，拖慢啟動又加重手機 DOM。建議關閉自動載入或開新檔。`,
+            text: `「自動載入上次聊天」開著，且目前聊天 ${chatLen} 樓。每次開酒館都要載入這條長聊天，拖慢啟動又加重手機 DOM。`,
+            action: fixAuto,
         });
     } else if (chatLen >= s.longChatThreshold) {
         findings.push({
@@ -184,11 +202,139 @@ function runHealthCheck() {
     } else if (autoLoad) {
         findings.push({
             level: 'info',
-            text: '「自動載入上次聊天」開著。若上次聊天很長，啟動會比較慢；用不到可在使用者設定關閉。',
+            text: '「自動載入上次聊天」開著。若上次聊天很長，啟動會比較慢。',
+            action: fixAuto,
         });
     }
 
     renderFindings(findings);
+}
+
+/**
+ * 偵測 cocktail / cocktail-plus 狀態，並針對「半套安裝」「未安裝」給出可行動建議。
+ *
+ * 後端探測走 GET /api/plugins/cocktail-plus/fast/version——這是 cocktail-plus 後端
+ * plugin 的 GET 路由（11-server-plugins §完整 API 面），而 GET/HEAD/OPTIONS 是
+ * csrf-sync 預設豁免的方法（同篇 §CSRF 豁免），所以前端不必帶 X-CSRF-Token。
+ *   - 200 → 後端 plugin 活著
+ *   - 404 → 後端沒裝，或 config.yaml 的 enableServerPlugins 是 false（計畫書 §7.4）
+ *   - 其他/網路錯 → 不確定（誠實標示，不亂下結論）
+ * @param {Array} findings
+ */
+async function checkCocktail(findings) {
+    const tp = listThirdPartyExtensions();
+    const hasCP = tp.some((n) => /cocktail-?plus/i.test(n));
+    const hasCocktail = tp.some((n) => /cocktail/i.test(n)) && !hasCP;
+
+    const backend = await probeCocktailBackend();
+    const installCP = { label: '複製 cocktail-plus 安裝網址', fn: () => copyUrl(COCKTAIL_PLUS_URL) };
+
+    if (hasCP && backend === true) {
+        findings.push({
+            level: 'ok',
+            text: 'cocktail-plus 前端＋後端都就緒：後端快取、early bridge 啟動加速、存檔縮包、擴充平行啟動都生效。',
+        });
+    } else if (hasCP && backend === false) {
+        findings.push({
+            level: 'warn',
+            text: '疑似 cocktail-plus「半套安裝」：前端擴充裝了，但後端 plugin 探測不到（enableServerPlugins 沒開，或後端元件沒複製進 plugins/）。前端會一直空打不存在的端點、浪費資源（計畫書 §7.5）。請完整裝後端，或先在酒館停用前端 cocktail-plus 擴充。',
+        });
+    } else if (hasCP && backend === null) {
+        findings.push({
+            level: 'info',
+            text: '裝了前端 cocktail-plus，但後端狀態探測不到（可能登入牆或網路）。確認 config.yaml 的 enableServerPlugins: true 並完成後端安裝（計畫書第 4 節）。',
+        });
+    } else if (backend === true) {
+        findings.push({
+            level: 'info',
+            text: '偵測到 cocktail-plus 後端在跑，但前端擴充沒載入。到擴充管理啟用前端 cocktail-plus 才吃得到加速。',
+        });
+    } else if (hasCocktail) {
+        findings.push({
+            level: 'info',
+            text: '已裝輕量版 cocktail（純前端快取）。想要後端快取＋啟動平行化＋存檔縮包，可升級 cocktail-plus。',
+            action: installCP,
+        });
+    } else {
+        findings.push({
+            level: 'warn',
+            text: '沒偵測到 cocktail / cocktail-plus —— 這是計畫書對雲端卡頓的【核心推薦】。cocktail-plus 做後端快取、early bridge 啟動加速、存檔縮包、擴充平行啟動，雲端啟動與長對話有感。建議安裝。',
+            action: installCP,
+        });
+    }
+}
+
+/**
+ * 探測 cocktail-plus 後端是否在跑。
+ * 同時打兩條已知的 GET 路由（CSRF 豁免）以降低誤判：sw.js、fast/version
+ * （11-server-plugins §完整 API 面）。
+ *   - 任一個回 200 → 後端確定活著（true）
+ *   - 兩條都回 404 → 後端確定沒裝/enableServerPlugins 沒開（false）
+ *   - 其他（401/403/5xx/網路錯）→ 不確定（null），不亂下「半套安裝」結論
+ * @returns {Promise<boolean|null>}
+ */
+async function probeCocktailBackend() {
+    const paths = ['/api/plugins/cocktail-plus/sw.js', '/api/plugins/cocktail-plus/fast/version'];
+    let saw404 = false;
+    let sawOther = false;
+    for (const p of paths) {
+        try {
+            const r = await fetch(p, { method: 'GET', credentials: 'same-origin' });
+            if (r.ok) {
+                return true;
+            }
+            if (r.status === 404) {
+                saw404 = true;
+            } else {
+                sawOther = true;
+            }
+        } catch {
+            sawOther = true;
+        }
+    }
+    if (saw404 && !sawOther) {
+        return false;
+    }
+    return null;
+}
+
+/** 一鍵關閉「自動載入上次聊天」——觸發 ST 官方 checkbox handler（power-user.js:4031-4034）。 */
+function disableAutoLoadChat() {
+    const ctx = getCtx();
+    const cb = document.getElementById('auto-load-chat-checkbox');
+    if (cb) {
+        // 走官方 input handler：它自己設 power_user.auto_load_chat 並 saveSettingsDebounced
+        $('#auto-load-chat-checkbox').prop('checked', false).trigger('input');
+    } else if (ctx?.powerUserSettings) {
+        // 設定面板還沒展開時的後備：直接設值＋存檔
+        ctx.powerUserSettings.auto_load_chat = false;
+        ctx.saveSettingsDebounced?.();
+    }
+    try {
+        toastr.success('已關閉「自動載入上次聊天」。下次開酒館不會再自動載入長聊天。', '卡頓驗屍官');
+    } catch { /* noop */ }
+    runHealthCheck();
+}
+
+/** 複製安裝網址到剪貼簿（不安全情境/不支援時，退回顯示網址讓使用者長按複製）。 */
+function copyUrl(url) {
+    const fallback = () => {
+        try {
+            toastr.info(url, '安裝網址（請長按複製）', { timeOut: 0, extendedTimeOut: 0, closeButton: true, escapeHtml: true });
+        } catch { /* noop */ }
+    };
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(url).then(
+            () => {
+                try {
+                    toastr.success('已複製安裝網址。到 Extensions → Install extension 貼上即可。', '卡頓驗屍官');
+                } catch { /* noop */ }
+            },
+            fallback,
+        );
+    } else {
+        fallback();
+    }
 }
 
 /**
@@ -212,7 +358,16 @@ function renderFindings(findings) {
         const row = document.createElement('div');
         row.className = 'slc-finding slc-' + f.level;
         const icon = f.level === 'warn' ? '⚠️ ' : f.level === 'ok' ? '✅ ' : 'ℹ️ ';
-        row.textContent = icon + f.text;
+        const txt = document.createElement('span');
+        txt.textContent = icon + f.text; // 純 textContent，零 XSS
+        row.appendChild(txt);
+        if (f.action && typeof f.action.fn === 'function') {
+            const btn = document.createElement('div');
+            btn.className = 'menu_button slc-fix-btn';
+            btn.textContent = f.action.label;
+            btn.addEventListener('click', f.action.fn);
+            row.appendChild(btn);
+        }
         box.appendChild(row);
     }
 }
@@ -531,6 +686,8 @@ function bindControls() {
     }
     document.getElementById('slc-run-health')?.addEventListener('click', runHealthCheck);
     document.getElementById('slc-run-gauge')?.addEventListener('click', startGauge);
+    document.getElementById('slc-copy-cp')?.addEventListener('click', () => copyUrl(COCKTAIL_PLUS_URL));
+    document.getElementById('slc-reload')?.addEventListener('click', () => location.reload());
 }
 
 /** 把存檔值灌回 UI（先 append、綁好事件後才做，04 §4 的順序） */
