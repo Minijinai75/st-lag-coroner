@@ -1,0 +1,19 @@
+{
+    "slc_title": "🩺 Lag Coroner",
+    "slc_intro": "First measure whether the lag is on the server (A) or your phone's screen (B), then honestly handle the client half. It does not intercept fetch, touch chat rendering, or fix the server — the frontend physically can't.",
+    "slc_enabled": "Enable Lag Coroner",
+    "slc_health_title": "🔍 Environment health check",
+    "slc_health_run": "Re-run check",
+    "slc_gauge_title": "📈 Perceived-latency meter (phone smoothness)",
+    "slc_gauge_note": "Off by default; samples for 10 seconds when pressed — scroll the chat normally. Measures only this phone (B), not the server (A).",
+    "slc_gauge_run": "Start measuring (10s)",
+    "slc_nudge_title": "🗂️ Long-chat nudge",
+    "slc_nudge_enabled": "Suggest starting a new chat when it gets long",
+    "slc_nudge_threshold": "Nudge threshold (message count)",
+    "slc_ops_title": "🛠️ Only the server can fix these (frontend can't touch them)",
+    "slc_ops_lead": "If the meter shows \"generation waits are long but the screen isn't busy,\" the problem is most likely the server or network, and no frontend extension can help. Ask the operator to do the highest-ROI things:",
+    "slc_ops_1": "Set a memory limit on the Pod so the platform's OOMKill auto-restarts it, replacing the fragile pre-dawn cron.",
+    "slc_ops_2": "config.yaml: enable lazyLoadCharacters, enable requestCompression, disable enableServerPluginsAutoUpdate.",
+    "slc_ops_3": "Turn off \"auto-load last chat\", periodically clear character cache and overflow backups, and shallow-clone extension .git histories.",
+    "slc_ops_foot": "See the Cloud Tavern Optimization Plan for details. This extension only tells you where the problem is — it will not, and cannot, touch the server for you."
+}

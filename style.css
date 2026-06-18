@@ -1,0 +1,123 @@
+/*
+ * 卡頓驗屍官 樣式
+ * - 全部 scope 在 #slc-root 底下，跟隨 ST 主題變數（--SmartTheme*，10-css §1）
+ * - 面板在 #extensions_settings2 之內、隨頁面流排版，無 position:fixed，
+ *   因此完全避開 html transform 破壞 fixed 的手機陷阱（10-css 陷阱 1）。
+ *   唯一的彈窗走 ST Popup API（top layer，不受 transform/z-index 影響）。
+ */
+
+#slc-root .slc-intro,
+#slc-root .slc-note {
+    display: block;
+    opacity: 0.8;
+    margin: 6px 0;
+    line-height: 1.45;
+}
+
+#slc-root .slc-hr {
+    border: none;
+    border-top: 1px solid var(--SmartThemeBorderColor);
+    opacity: 0.4;
+    margin: 10px 0;
+}
+
+#slc-root .slc-section {
+    margin: 8px 0;
+}
+
+#slc-root .slc-section-title {
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+#slc-root .slc-row {
+    margin: 6px 0;
+}
+
+#slc-root .menu_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    padding: 4px 12px;
+}
+
+#slc-root .menu_button.slc-busy {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+#slc-root .slc-results {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#slc-root .slc-finding,
+#slc-root .slc-gauge-line {
+    padding: 6px 9px;
+    border-radius: 8px;
+    line-height: 1.45;
+    border: 1px solid var(--SmartThemeBorderColor);
+    background: var(--black30a, rgba(0, 0, 0, 0.3));
+}
+
+#slc-root .slc-finding.slc-warn,
+#slc-root .slc-gauge-line.slc-warn {
+    border-left: 3px solid var(--warning, #e0a030);
+}
+
+#slc-root .slc-finding.slc-info,
+#slc-root .slc-gauge-line.slc-info {
+    border-left: 3px solid var(--active, #5b9bd5);
+}
+
+#slc-root .slc-finding.slc-ok,
+#slc-root .slc-gauge-line.slc-ok {
+    border-left: 3px solid var(--okGreen70a, #4caf50);
+}
+
+/* 結果區裡的 .slc-note（量測免責聲明等）：不要框線、低調 */
+#slc-root .slc-results .slc-note,
+#slc-root .slc-gauge-line.slc-note {
+    border: none;
+    background: none;
+    padding: 2px 0;
+    font-size: 0.85em;
+    opacity: 0.7;
+}
+
+#slc-root .slc-inline-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+#slc-root .slc-num {
+    width: 110px;
+    max-width: 40vw;
+}
+
+#slc-root .slc-subdrawer {
+    margin-top: 4px;
+}
+
+#slc-root .slc-ops ol {
+    padding-left: 1.4em;
+    margin: 6px 0;
+}
+
+#slc-root .slc-ops li {
+    margin: 4px 0;
+    line-height: 1.5;
+}
+
+/* 勸導彈窗（在 ST Popup 內，不在 #slc-root 之下，故獨立選擇器） */
+.slc-nudge p {
+    margin: 0 0 10px;
+    line-height: 1.55;
+    text-align: left;
+}

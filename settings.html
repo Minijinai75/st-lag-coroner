@@ -1,0 +1,83 @@
+<!--
+  卡頓驗屍官 設定面板（inline-drawer 模板，translate/settings 型）
+  - 由 index.js 經 renderExtensionTemplateAsync('third-party/st-lag-coroner','settings') 載入
+  - 純靜態 HTML：無 Handlebars 變數、無 inline 事件（會被 DOMPurify 清掉），事件一律由 index.js 綁
+  - 展開收合由 ST 全域委派 handler 處理（script.js:12131-12154），動態 append 也生效
+  - 巢狀 inline-drawer（維運提示卡）同樣吃全域委派
+-->
+<div class="inline-drawer slc-panel" id="slc-root">
+    <div class="inline-drawer-toggle inline-drawer-header">
+        <b data-i18n="slc_title">🩺 卡頓驗屍官 Lag Coroner</b>
+        <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+    </div>
+    <div class="inline-drawer-content">
+        <small class="slc-intro" data-i18n="slc_intro">先量出卡在伺服器(A)還是你手機畫面(B)，再誠實處理客戶端那半。它不攔 fetch、不碰聊天渲染、不修伺服器——那些前端做不到。</small>
+
+        <label class="checkbox_label" for="slc-enabled">
+            <input type="checkbox" id="slc-enabled" />
+            <span data-i18n="slc_enabled">啟用卡頓驗屍官</span>
+        </label>
+
+        <hr class="slc-hr" />
+
+        <!-- 環境健檢 -->
+        <div class="slc-section">
+            <div class="slc-section-title" data-i18n="slc_health_title">🔍 環境健檢</div>
+            <div class="slc-row">
+                <div class="menu_button" id="slc-run-health">
+                    <span data-i18n="slc_health_run">重新健檢</span>
+                </div>
+            </div>
+            <div id="slc-health-results" class="slc-results"></div>
+        </div>
+
+        <hr class="slc-hr" />
+
+        <!-- 感知延遲量測 -->
+        <div class="slc-section">
+            <div class="slc-section-title" data-i18n="slc_gauge_title">📈 感知延遲量測（手機畫面流暢度）</div>
+            <small class="slc-note" data-i18n="slc_gauge_note">預設不量測；按下後取樣 10 秒，請正常滑動聊天。只量你這台手機（B），量不到伺服器（A）。</small>
+            <div class="slc-row">
+                <div class="menu_button" id="slc-run-gauge">
+                    <span data-i18n="slc_gauge_run">開始量測（10 秒）</span>
+                </div>
+            </div>
+            <div id="slc-gauge-results" class="slc-results"></div>
+            <div id="slc-gen-readout" class="slc-note"></div>
+        </div>
+
+        <hr class="slc-hr" />
+
+        <!-- 長聊天勸導 -->
+        <div class="slc-section">
+            <div class="slc-section-title" data-i18n="slc_nudge_title">🗂️ 長聊天勸導</div>
+            <label class="checkbox_label" for="slc-nudge-enabled">
+                <input type="checkbox" id="slc-nudge-enabled" />
+                <span data-i18n="slc_nudge_enabled">聊天過長時提示開新檔</span>
+            </label>
+            <label class="slc-inline-label" for="slc-nudge-threshold">
+                <span data-i18n="slc_nudge_threshold">提示門檻（樓層數）</span>
+                <input type="number" id="slc-nudge-threshold" class="text_pole slc-num" min="50" max="100000" step="50" />
+            </label>
+        </div>
+
+        <hr class="slc-hr" />
+
+        <!-- 維運提示卡（伺服器側才治得了的事，誠實指回伺服器） -->
+        <div class="inline-drawer slc-subdrawer">
+            <div class="inline-drawer-toggle inline-drawer-header">
+                <b data-i18n="slc_ops_title">🛠️ 伺服器側才治得了的（前端碰不到）</b>
+                <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+            </div>
+            <div class="inline-drawer-content slc-ops">
+                <p data-i18n="slc_ops_lead">如果量測顯示「生成等待久、但手機畫面不忙」，問題多半在伺服器或網路，裝任何前端擴充都救不了。請維運者做這幾件投報率最高的事：</p>
+                <ol>
+                    <li data-i18n="slc_ops_1">給 Pod 設記憶體上限（memory limit），讓平台用 OOMKill 自動重啟，取代脆弱的凌晨 cron。</li>
+                    <li data-i18n="slc_ops_2">config.yaml：開 lazyLoadCharacters、開 requestCompression、關 enableServerPluginsAutoUpdate。</li>
+                    <li data-i18n="slc_ops_3">關閉「自動載入上次聊天」、定期清角色快取與溢出備份、把擴充 .git 淺層化。</li>
+                </ol>
+                <small data-i18n="slc_ops_foot">細節見《雲端酒館優化計畫書》。本擴充只負責「告訴你問題在哪」，不會、也無法替你動伺服器。</small>
+            </div>
+        </div>
+    </div>
+</div>
